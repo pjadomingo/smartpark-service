@@ -1,0 +1,35 @@
+# Maven / Gradle build outputs
+target/
+build/
+
+# IDE files
+*.iml
+.idea/
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment / config
+*.env
+*.properties.local
+application-*.yml.local
+
+# Generated files
+bin/
+out/
+
+# Test reports
+surefire-reports/
+test-output/
+
+# Backup files
+*.swp
+*.bak
