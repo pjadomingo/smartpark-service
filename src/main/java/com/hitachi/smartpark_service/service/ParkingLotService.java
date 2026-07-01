@@ -79,8 +79,7 @@ public class ParkingLotService {
 	        Optional<ParkingLot> optionalLot = repository.findByLotId(lotId);
 
 	        if (optionalLot.isPresent()) {
-	            ParkingLot pl = optionalLot.get();
-	            
+	            ParkingLot pl = optionalLot.get();	          
 	            if(!pl.isFull()) {
 		            pl.setOccupiedSpaces(pl.getOccupiedSpaces() + 1); // increment by 1
 		             repository.save(pl); // persist the change
