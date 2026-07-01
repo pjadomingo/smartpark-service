@@ -31,7 +31,8 @@ public class ParkingLotDto {
     @Positive(message = "costPerMinute must be greater than 0")
     private Double costPerMinute;
 
-
+    private String statusTransaction;
+    private boolean success;
     // Constructors
     public ParkingLotDto() {}
 
@@ -52,6 +53,32 @@ public class ParkingLotDto {
     public void setId(Long id) {
         this.id = id;
     }
+    
+    public boolean isSuccess() {
+		return success;
+	}
+
+	public void setSuccess(boolean success) {
+		this.success = success;
+	}
+
+	public String getStatusTransaction() {
+ 		return statusTransaction;
+ 	}
+
+ 	public void setStatusTransaction(String statusTransaction) {
+ 		this.statusTransaction = statusTransaction;
+ 	}
+ 	
+ 	public void setSuccessStatusTransaction(String statusTransaction) {
+ 		this.statusTransaction = statusTransaction;
+ 		this.success = true;
+ 	}
+ 	
+ 	public void setFailedStatusTransaction(String statusTransaction) {
+ 		this.statusTransaction = statusTransaction;
+ 		this.success = false;
+ 	}
 
     public String getLotId() {
         return lotId;

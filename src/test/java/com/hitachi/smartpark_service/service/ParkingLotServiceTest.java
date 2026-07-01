@@ -1,20 +1,17 @@
 package com.hitachi.smartpark_service.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-
+import com.hitachi.smartpark_service.dto.ParkingLotDto;
+import com.hitachi.smartpark_service.model.ParkingLot;
+import com.hitachi.smartpark_service.repository.ParkingLotRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.hitachi.smartpark_service.dto.ParkingLotDto;
-import com.hitachi.smartpark_service.model.ParkingLot;
-import com.hitachi.smartpark_service.repository.ParkingLotRepository;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class ParkingLotServiceTest {
 
@@ -25,11 +22,11 @@ class ParkingLotServiceTest {
     void setUp() {
         repository = Mockito.mock(ParkingLotRepository.class);
         service = new ParkingLotService();
-        service.repository = repository; // inject mock
+        service.repository = repository;
     }
 
     @Test
-    void testCreateParkingLot() {
+    void testCreateSuccess() {
         ParkingLotDto dto = new ParkingLotDto();
         dto.setLotId("LOT-A1");
         dto.setLocation("Makati");
@@ -37,37 +34,59 @@ class ParkingLotServiceTest {
         dto.setOccupiedSpaces(10);
         dto.setCostPerMinute(5.0);
 
-        ParkingLot lot = dto.toEntity();
-        lot.setId(1L);
+        ParkingLot entity = dto.toEntity();
 
-        when(repository.save(any(ParkingLot.class))).thenReturn(lot);
+        when(repository.existsByLotId("LOT-A1")).thenReturn(false);
+        when(repository.save(any(ParkingLot.class))).thenReturn(entity);
 
-        ParkingLot result = service.create(dto);
+        ParkingLotDto result = service.create(dto);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getLotId()).isEqualTo("LOT-A1");
+        assertThat(result.getStatusTransaction()).isEqualTo("Registered Successfully.");
         verify(repository).save(any(ParkingLot.class));
     }
 
     @Test
-    void testFindByLotIdReturnsResult() {
+    void testFindByLotIdFound() {
         ParkingLot lot = new ParkingLot();
         lot.setLotId("LOT-B2");
-        lot.setCapacity(100);
+        lot.setLocation("Taguig");
 
         when(repository.findByLotId("LOT-B2")).thenReturn(Optional.of(lot));
 
-        ParkingLot result = service.findByLotId("LOT-B2");
+        ParkingLotDto result = service.findByLotId("LOT-B2");
 
-        assertThat(result).isNotNull();
-        assertThat(result.getCapacity()).isEqualTo(100);
+        assertThat(result.getStatusTransaction()).isEqualTo("Found Parking lot.");
+        assertThat(result.getLotId()).isEqualTo("LOT-B2");
     }
 
     @Test
-    void testFindByLotIdReturnsNullWhenNotFound() {
-        when(repository.findByLotId("NON_EXISTENT")).thenReturn(Optional.empty());
+    void testFindByLotIdNotFound() {
+        when(repository.findByLotId("MISSING")).thenReturn(Optional.empty());
 
-        ParkingLot result = service.findByLotId("NON_EXISTENT");
+        ParkingLotDto result = service.findByLotId("MISSING");
+
+        assertThat(result.getStatusTransaction()).isEqualTo("Not Found Parking Lot.");
+        assertThat(result.getLotId()).isEqualTo("MISSING");
+    }
+
+    @Test
+    void testFindByParkingLotIdFound() {
+        ParkingLot lot = new ParkingLot();
+        lot.setLotId("LOT-C1");
+
+        when(repository.findByLotId("LOT-C1")).thenReturn(Optional.of(lot));
+
+        ParkingLot result = service.findByParkingLotId("LOT-C1");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getLotId()).isEqualTo("LOT-C1");
+    }
+
+    @Test
+    void testFindByParkingLotIdNotFound() {
+        when(repository.findByLotId("MISSING")).thenReturn(Optional.empty());
+
+        ParkingLot result = service.findByParkingLotId("MISSING");
 
         assertThat(result).isNull();
     }
@@ -75,13 +94,14 @@ class ParkingLotServiceTest {
     @Test
     void testOccupySpaceSuccess() {
         ParkingLot lot = new ParkingLot();
-        lot.setLotId("LOT-C3");
+        lot.setLotId("LOT-D1");
         lot.setCapacity(10);
         lot.setOccupiedSpaces(5);
 
-        when(repository.findByLotId("LOT-C3")).thenReturn(Optional.of(lot));
+        when(repository.findByLotId("LOT-D1")).thenReturn(Optional.of(lot));
+        when(repository.save(any(ParkingLot.class))).thenReturn(lot);
 
-        boolean result = service.occupySpace("LOT-C3");
+        boolean result = service.occupySpace("LOT-D1");
 
         assertThat(result).isTrue();
         assertThat(lot.getOccupiedSpaces()).isEqualTo(6);
@@ -91,13 +111,13 @@ class ParkingLotServiceTest {
     @Test
     void testOccupySpaceFailsWhenFull() {
         ParkingLot lot = new ParkingLot();
-        lot.setLotId("LOT-C3");
+        lot.setLotId("LOT-FULL");
         lot.setCapacity(5);
         lot.setOccupiedSpaces(5);
 
-        when(repository.findByLotId("LOT-C3")).thenReturn(Optional.of(lot));
+        when(repository.findByLotId("LOT-FULL")).thenReturn(Optional.of(lot));
 
-        boolean result = service.occupySpace("LOT-C3");
+        boolean result = service.occupySpace("LOT-FULL");
 
         assertThat(result).isFalse();
         verify(repository, never()).save(any(ParkingLot.class));
@@ -106,13 +126,14 @@ class ParkingLotServiceTest {
     @Test
     void testUnOccupySpaceSuccess() {
         ParkingLot lot = new ParkingLot();
-        lot.setLotId("LOT-D4");
+        lot.setLotId("LOT-E1");
         lot.setCapacity(10);
         lot.setOccupiedSpaces(3);
 
-        when(repository.findByLotId("LOT-D4")).thenReturn(Optional.of(lot));
+        when(repository.findByLotId("LOT-E1")).thenReturn(Optional.of(lot));
+        when(repository.save(any(ParkingLot.class))).thenReturn(lot);
 
-        boolean result = service.unOccupySpace("LOT-D4");
+        boolean result = service.unOccupySpace("LOT-E1");
 
         assertThat(result).isTrue();
         assertThat(lot.getOccupiedSpaces()).isEqualTo(2);
@@ -122,13 +143,13 @@ class ParkingLotServiceTest {
     @Test
     void testUnOccupySpaceFailsWhenZero() {
         ParkingLot lot = new ParkingLot();
-        lot.setLotId("LOT-D4");
+        lot.setLotId("LOT-EMPTY");
         lot.setCapacity(10);
         lot.setOccupiedSpaces(0);
 
-        when(repository.findByLotId("LOT-D4")).thenReturn(Optional.of(lot));
+        when(repository.findByLotId("LOT-EMPTY")).thenReturn(Optional.of(lot));
 
-        boolean result = service.unOccupySpace("LOT-D4");
+        boolean result = service.unOccupySpace("LOT-EMPTY");
 
         assertThat(result).isFalse();
         verify(repository, never()).save(any(ParkingLot.class));

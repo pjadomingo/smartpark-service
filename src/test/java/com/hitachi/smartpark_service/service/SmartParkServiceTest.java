@@ -1,21 +1,18 @@
 package com.hitachi.smartpark_service.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import com.hitachi.smartpark_service.dto.ParkedVehicleDto;
 import com.hitachi.smartpark_service.model.ParkedVehicle;
 import com.hitachi.smartpark_service.model.ParkingLot;
 import com.hitachi.smartpark_service.model.Vehicle;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 class SmartParkServiceTest {
 
@@ -37,6 +34,34 @@ class SmartParkServiceTest {
     }
 
     @Test
+    void testGetCheckedInVehiclesDelegates() {
+        Map<Long, ParkedVehicle> cache = new HashMap<>();
+        ParkedVehicle pv = new ParkedVehicle();
+        pv.setId(1L);
+        cache.put(1L, pv);
+
+        when(parkedVehicleService.getCheckedInVehicles()).thenReturn(cache);
+
+        Map<Long, ParkedVehicle> result = service.getCheckedInVehicles();
+
+        assertThat(result).containsKey(1L);
+    }
+
+    @Test
+    void testRemoveCheckInVehiclesRemovesFromCache() {
+        Map<Long, ParkedVehicle> cache = new HashMap<>();
+        ParkedVehicle pv = new ParkedVehicle();
+        pv.setId(2L);
+        cache.put(2L, pv);
+
+        when(parkedVehicleService.getCheckedInVehicles()).thenReturn(cache);
+
+        service.removeCheckInVehicles(2L);
+
+        assertThat(cache).doesNotContainKey(2L);
+    }
+
+    @Test
     void testCheckInVehicleSuccess() {
         Vehicle vehicle = new Vehicle();
         vehicle.setLicensePlate("ABC-123");
@@ -47,13 +72,13 @@ class SmartParkServiceTest {
         lot.setOccupiedSpaces(5);
 
         ParkedVehicle pv = new ParkedVehicle();
-        pv.setId(1L);
+        pv.setId(3L);
         pv.setLicensePlate("ABC-123");
         pv.setParkingLotId("LOT-A1");
         pv.setParked(true);
 
         when(vehicleService.getByLicensePlate("ABC-123")).thenReturn(vehicle);
-        when(parkingLotService.findByLotId("LOT-A1")).thenReturn(lot);
+        when(parkingLotService.findByParkingLotId("LOT-A1")).thenReturn(lot);
         when(parkedVehicleService.isVehicleParked("ABC-123", "LOT-A1")).thenReturn(false);
         when(parkingLotService.occupySpace("LOT-A1")).thenReturn(true);
         when(parkedVehicleService.checkIn(lot, vehicle)).thenReturn(pv);
@@ -75,32 +100,46 @@ class SmartParkServiceTest {
         verifyNoInteractions(parkingLotService);
     }
 
-
     @Test
-    void testGetCheckedInVehiclesDelegatesToParkedVehicleService() {
-        Map<Long, ParkedVehicle> cache = new HashMap<>();
+    void testCheckOutVehicleSuccess() {
+        Vehicle vehicle = new Vehicle();
+        vehicle.setLicensePlate("XYZ-999");
+
+        ParkingLot lot = new ParkingLot();
+        lot.setLotId("LOT-B2");
+
         ParkedVehicle pv = new ParkedVehicle();
-        pv.setId(3L);
-        cache.put(3L, pv);
+        pv.setId(4L);
+        pv.setLicensePlate("XYZ-999");
+        pv.setParkingLotId("LOT-B2");
+        pv.setParked(true);
 
-        when(parkedVehicleService.getCheckedInVehicles()).thenReturn(cache);
+        ParkedVehicleDto dto = ParkedVehicleDto.fromEntity(pv, lot);
 
-        Map<Long, ParkedVehicle> result = service.getCheckedInVehicles();
+        when(vehicleService.getByLicensePlate("XYZ-999")).thenReturn(vehicle);
+        when(parkingLotService.findByParkingLotId("LOT-B2")).thenReturn(lot);
+        when(parkedVehicleService.isVehicleParked("XYZ-999", "LOT-B2")).thenReturn(true);
+        when(parkingLotService.unOccupySpace("LOT-B2")).thenReturn(true);
+        when(parkedVehicleService.checkOut(lot, vehicle)).thenReturn(dto);
 
-        assertThat(result).containsKey(3L);
+        ParkedVehicleDto result = service.checkOutVehicle("XYZ-999", "LOT-B2");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getLicensePlate()).isEqualTo("XYZ-999");
+        verify(parkedVehicleService).checkOut(lot, vehicle);
     }
 
     @Test
-    void testRemoveCheckInVehiclesRemovesFromCache() {
-        Map<Long, ParkedVehicle> cache = new HashMap<>();
-        ParkedVehicle pv = new ParkedVehicle();
-        pv.setId(4L);
-        cache.put(4L, pv);
+    void testCheckOutVehicleFailsWhenLotNotFound() {
+        Vehicle vehicle = new Vehicle();
+        vehicle.setLicensePlate("ABC-123");
 
-        when(parkedVehicleService.getCheckedInVehicles()).thenReturn(cache);
+        when(vehicleService.getByLicensePlate("ABC-123")).thenReturn(vehicle);
+        when(parkingLotService.findByParkingLotId("MISSING")).thenReturn(null);
 
-        service.removeCheckInVehicles(4L);
+        ParkedVehicleDto result = service.checkOutVehicle("ABC-123", "MISSING");
 
-        assertThat(cache).doesNotContainKey(4L);
+        assertThat(result).isNull();
+        verifyNoInteractions(parkedVehicleService);
     }
 }

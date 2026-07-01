@@ -12,6 +12,7 @@ import com.hitachi.smartpark_service.model.ParkingLot;
 public interface ParkingLotRepository extends JpaRepository<ParkingLot, Long> {
 
     Optional<ParkingLot> findByLotId(String lotId);
+    boolean existsByLotId(String lotId);
 }
 
 

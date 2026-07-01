@@ -28,10 +28,10 @@ public class ParkingLotController {
 	@PostMapping
 	public ResponseEntity<?> register(@Valid @RequestBody ParkingLotDto body) {
 		try {
-			ParkingLot response = service.create(body);
+			ParkingLotDto response = service.create(body);
 
 			if(response != null) {
-				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+				return ResponseEntity.status(response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST).body(response);
 			}
 
 		} catch (Exception e) {
@@ -44,12 +44,10 @@ public class ParkingLotController {
 	@GetMapping("/{lotId}")
 	public ResponseEntity<?> get(@PathVariable String lotId) {
 		try {
-			ParkingLot response = service.findByLotId(lotId);
-			if(response == null) {
-				 ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-			}
-
-			return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+			ParkingLotDto response = service.findByLotId(lotId);
+			if(response != null) {
+				 return ResponseEntity.status(response.isSuccess() ? HttpStatus.FOUND : HttpStatus.NOT_FOUND).body(response);
+			}			
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());

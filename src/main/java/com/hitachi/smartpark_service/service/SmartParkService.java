@@ -42,7 +42,7 @@ public class SmartParkService {
 			}
 
 			// Find parking lot
-			ParkingLot parkingLot = parkingLotService.findByLotId(parkingLotId);
+			ParkingLot parkingLot = parkingLotService.findByParkingLotId(parkingLotId);
 			if (parkingLot == null) {
 				System.out.println("Parking lot with ID " + parkingLotId + " not found.");
 				return null;
@@ -74,7 +74,7 @@ public class SmartParkService {
 			}
 
 			// Find parking lot
-			ParkingLot parkingLot = parkingLotService.findByLotId(parkingLotId);
+			ParkingLot parkingLot = parkingLotService.findByParkingLotId(parkingLotId);
 			if (parkingLot == null) {
 				System.out.println("Parking lot with ID " + parkingLotId + " not found.");
 				return null;

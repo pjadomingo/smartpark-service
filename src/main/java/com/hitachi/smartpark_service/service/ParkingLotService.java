@@ -15,14 +15,22 @@ public class ParkingLotService {
 	@Autowired
 	public ParkingLotRepository repository;
 
-	public ParkingLot create(ParkingLotDto accountDto) {
-		ParkingLot vehicle = accountDto.toEntity();
+	public ParkingLotDto create(ParkingLotDto parkinglotDto) {
+		ParkingLot parkinglot = parkinglotDto.toEntity();
 
 		try {
 
-			vehicle = repository.save(vehicle);
+			if(!repository.existsByLotId(parkinglot.getLotId())) {
+				parkinglot = repository.save(parkinglot);
+				parkinglotDto = ParkingLotDto.fromEntity(parkinglot);
+				
+				parkinglotDto.setSuccessStatusTransaction("Registered Successfully.");
+			}else {
+				parkinglotDto.setFailedStatusTransaction("Registered Failed, duplicate lot id.");
+			}
+			
 
-			return vehicle;
+			return parkinglotDto;
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
 		}
@@ -30,10 +38,35 @@ public class ParkingLotService {
 		return null;
 	}
 	
-    public ParkingLot findByLotId(String lotId) {
+    public ParkingLotDto findByLotId(String lotId) {
         try {
-            return repository.findByLotId(lotId)
+        	ParkingLot pl = repository.findByLotId(lotId)
                              .orElse(null); 
+
+    		ParkingLotDto dto;
+        	if(pl == null) {
+        		dto = new ParkingLotDto(null, lotId, "", 0, 0, 0);
+        		dto.setFailedStatusTransaction("Not Found Parking Lot.");
+        		
+        	}else {
+        		 dto = ParkingLotDto.fromEntity(pl);
+        		 dto.setSuccessStatusTransaction("Found Parking lot.");
+        	}
+        	
+        	return dto;
+        
+        } catch (Exception e) {
+            System.out.println("Error finding ParkingLot: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    public ParkingLot findByParkingLotId(String lotId) {
+        try {
+        	return repository.findByLotId(lotId)
+                             .orElse(null); 
+        
         } catch (Exception e) {
             System.out.println("Error finding ParkingLot: " + e.getMessage());
         }

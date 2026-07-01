@@ -26,15 +26,15 @@ public class VehicleController {
 	@PostMapping
 	public ResponseEntity<?> register(@Valid @RequestBody VehicleDto body) {
 		try {
-			Vehicle response = service.create(body);
+			VehicleDto response = service.create(body);
 			if(response != null) {
-				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+				return ResponseEntity.status(response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST).body(response);
 			}
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 
-		return ResponseEntity.badRequest().body("Bad Request");
+		return ResponseEntity.badRequest().body("Something went wrong");
 	}
 }

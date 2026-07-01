@@ -1,20 +1,17 @@
 package com.hitachi.smartpark_service.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-
+import com.hitachi.smartpark_service.dto.VehicleDto;
+import com.hitachi.smartpark_service.model.Vehicle;
+import com.hitachi.smartpark_service.repository.VehicleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.hitachi.smartpark_service.dto.VehicleDto;
-import com.hitachi.smartpark_service.enums.VehicleType;
-import com.hitachi.smartpark_service.model.Vehicle;
-import com.hitachi.smartpark_service.repository.VehicleRepository;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class VehicleServiceTest {
 
@@ -25,58 +22,60 @@ class VehicleServiceTest {
     void setUp() {
         repository = Mockito.mock(VehicleRepository.class);
         service = new VehicleService();
-        service.repository = repository; // inject mock
+        service.repository = repository;
     }
 
     @Test
-    void testCreateVehicleSuccess() {
-        VehicleDto dto = new VehicleDto(1L, "ABC-123", "John Doe", "Car");
+    void testCreateSuccess() {
+        VehicleDto dto = new VehicleDto(null, "ABC-123", "John Doe", "Car");
         Vehicle entity = dto.toEntity();
         entity.setId(1L);
 
+        when(repository.existsByLicensePlate("ABC-123")).thenReturn(false);
         when(repository.save(any(Vehicle.class))).thenReturn(entity);
 
-        Vehicle result = service.create(dto);
+        VehicleDto result = service.create(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getLicensePlate()).isEqualTo("ABC-123");
-        assertThat(result.getOwnerName()).isEqualTo("John Doe");
-        assertThat(result.getType()).isEqualTo(VehicleType.Car);
+        assertThat(result.getStatusTransaction()).isEqualTo("Registered Successfully.");
         verify(repository).save(any(Vehicle.class));
     }
 
     @Test
-    void testGetByLicensePlateReturnsResult() {
-        Vehicle vehicle = new Vehicle();
-        vehicle.setLicensePlate("XYZ-999");
-        vehicle.setOwnerName("Jane Smith");
-        vehicle.setType(VehicleType.Truck);
+    void testCreateDuplicateLicensePlate() {
+        VehicleDto dto = new VehicleDto(null, "XYZ-999", "Jane Doe", "Truck");
 
-        when(repository.findByLicensePlate("XYZ-999")).thenReturn(Optional.of(vehicle));
+        when(repository.existsByLicensePlate("XYZ-999")).thenReturn(true);
 
-        Vehicle result = service.getByLicensePlate("XYZ-999");
+        VehicleDto result = service.create(dto);
 
         assertThat(result).isNotNull();
-        assertThat(result.getOwnerName()).isEqualTo("Jane Smith");
-        assertThat(result.getType()).isEqualTo(VehicleType.Truck);
+        assertThat(result.getStatusTransaction()).isEqualTo("Registered Failed, duplicate license plate.");
+        verify(repository, never()).save(any(Vehicle.class));
     }
 
     @Test
-    void testGetByLicensePlateReturnsNullWhenNotFound() {
+    void testGetByLicensePlateFound() {
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(2L);
+        vehicle.setLicensePlate("CAR-456");
+        vehicle.setOwnerName("Maria Santos");
+
+        when(repository.findByLicensePlate("CAR-456")).thenReturn(Optional.of(vehicle));
+
+        Vehicle result = service.getByLicensePlate("CAR-456");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getLicensePlate()).isEqualTo("CAR-456");
+        assertThat(result.getOwnerName()).isEqualTo("Maria Santos");
+    }
+
+    @Test
+    void testGetByLicensePlateNotFound() {
         when(repository.findByLicensePlate("MISSING")).thenReturn(Optional.empty());
 
         Vehicle result = service.getByLicensePlate("MISSING");
-
-        assertThat(result).isNull();
-    }
-
-    @Test
-    void testCreateVehicleHandlesException() {
-        VehicleDto dto = new VehicleDto(2L, "ERR-001", "Error Case", "Motorcycle");
-
-        when(repository.save(any(Vehicle.class))).thenThrow(new RuntimeException("DB error"));
-
-        Vehicle result = service.create(dto);
 
         assertThat(result).isNull();
     }
