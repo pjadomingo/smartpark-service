@@ -19,7 +19,6 @@ public class SmartParkScheduler {
     public void autoCheckOutVehicles() {
         Date now = new Date();
 
-        System.out.println("ETO NA");
         for (ParkedVehicle pv : service.getCheckedInVehicles().values()) {
             long diffMillis = now.getTime() - pv.getCheckInDate().getTime();
             long diffMinutes = diffMillis / (1000 * 60);

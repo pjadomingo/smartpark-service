@@ -24,30 +24,4 @@ class ParkedVehicleTest {
         assertThat(pv.isParked()).isTrue();
         assertThat(pv.getCheckInDate()).isEqualTo(now);
     }
-
-    @Test
-    void testPrePersistSetsCheckInDate() {
-        ParkedVehicle pv = new ParkedVehicle();
-        pv.setLicensePlate("XYZ-999");
-        pv.setParkingLotId("LOT-B2");
-        pv.setParked(true);
-
-        pv.onCreate(); // simulate JPA persist
-
-        assertThat(pv.getCheckInDate()).isNotNull();
-        assertThat(pv.getCheckInDate()).isCloseTo(new Date(), 1000); // within 1 second
-    }
-
-    @Test
-    void testPreUpdateRefreshesCheckInDate() throws InterruptedException {
-        ParkedVehicle pv = new ParkedVehicle();
-        pv.onCreate();
-        Date firstDate = pv.getCheckInDate();
-
-        Thread.sleep(10); // ensure time difference
-        pv.onUpdate(); // simulate JPA update
-
-        assertThat(pv.getCheckInDate()).isNotNull();
-        assertThat(pv.getCheckInDate()).isAfter(firstDate);
-    }
 }

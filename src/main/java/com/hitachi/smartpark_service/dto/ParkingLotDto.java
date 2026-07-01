@@ -2,7 +2,10 @@ package com.hitachi.smartpark_service.dto;
 
 import com.hitachi.smartpark_service.model.ParkingLot;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class ParkingLotDto {
@@ -16,14 +19,18 @@ public class ParkingLotDto {
     @NotBlank(message = "location is required field")
     private String location;
     
-    @NotBlank(message = "capacity is required field")
-    private int capacity;
-    
-    @NotBlank(message = "occupiedSpaces is required field")
-    private int occupiedSpaces;
-    
-    @NotBlank(message = "costPerMinute is required field")
-    private double costPerMinute;
+    @NotNull(message = "capacity is required field")
+    @Min(value = 1, message = "capacity must be at least 1")
+    private Integer capacity;
+
+    @NotNull(message = "occupiedSpaces is required field")
+    @Min(value = 0, message = "occupiedSpaces cannot be negative")
+    private Integer occupiedSpaces;
+
+    @NotNull(message = "costPerMinute is required field")
+    @Positive(message = "costPerMinute must be greater than 0")
+    private Double costPerMinute;
+
 
     // Constructors
     public ParkingLotDto() {}

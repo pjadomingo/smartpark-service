@@ -35,16 +35,6 @@ public class ParkedVehicle {
 	@NotNull
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date checkInDate = new Date();
-	
-	@PrePersist
-	protected void onCreate() {
-	    checkInDate = new Date(); // set default when first persisted
-	}
-	
-	@PreUpdate
-	protected void onUpdate() {
-	    checkInDate = new Date(); // refresh whenever updated
-	}
 
 	public Long getId() {
 		return id;

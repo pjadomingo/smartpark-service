@@ -24,7 +24,6 @@ public class ParkedVehicleDto {
         this.parkingCost = parkingCost;
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -39,15 +38,17 @@ public class ParkedVehicleDto {
 
     public double getParkingCost() { return parkingCost; }
     public void setParkingCost(double parkingCost) { this.parkingCost = parkingCost; }
+    
 
     // Mapping: Entity → DTO with cost calculation
     public static ParkedVehicleDto fromEntity(ParkedVehicle parkedVehicle, ParkingLot parkingLot) {
         if (parkedVehicle == null || parkingLot == null) return null;
 
         // Calculate minutes difference
-        long diffMillis = new Date().getTime() - parkedVehicle.getCheckInDate().getTime();
+        Date currDate = new Date();
+        long diffMillis = currDate.getTime() - parkedVehicle.getCheckInDate().getTime();
         long diffMinutes = diffMillis / (1000 * 60);
-
+        
         double cost = diffMinutes * parkingLot.getCostPerMinute();
 
         return new ParkedVehicleDto(

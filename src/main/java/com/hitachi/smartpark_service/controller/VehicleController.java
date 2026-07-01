@@ -27,8 +27,9 @@ public class VehicleController {
 	public ResponseEntity<?> register(@Valid @RequestBody VehicleDto body) {
 		try {
 			Vehicle response = service.create(body);
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			if(response != null) {
+				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			}
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());

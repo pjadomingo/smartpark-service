@@ -59,3 +59,7 @@ VALUES (9, 'VWX-7788', 'Grace Bautista', 'Car');
 
 INSERT INTO vehicle (id, license_plate, owner_name, type)
 VALUES (10, 'YZA-9900', 'Rico Mendoza', 'Truck');
+
+ALTER SEQUENCE vehicle_seq RESTART WITH 11;
+ALTER SEQUENCE parkinglot_seq RESTART WITH 11;
+

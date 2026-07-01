@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hitachi.smartpark_service.dto.ParkingLotDto;
-import com.hitachi.smartpark_service.dto.VehicleDto;
 import com.hitachi.smartpark_service.model.ParkingLot;
-import com.hitachi.smartpark_service.model.Vehicle;
 import com.hitachi.smartpark_service.service.ParkingLotService;
 
 import jakarta.validation.Valid;
@@ -32,7 +30,9 @@ public class ParkingLotController {
 		try {
 			ParkingLot response = service.create(body);
 
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			if(response != null) {
+				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			}
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -45,6 +45,9 @@ public class ParkingLotController {
 	public ResponseEntity<?> get(@PathVariable String lotId) {
 		try {
 			ParkingLot response = service.findByLotId(lotId);
+			if(response == null) {
+				 ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+			}
 
 			return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
 

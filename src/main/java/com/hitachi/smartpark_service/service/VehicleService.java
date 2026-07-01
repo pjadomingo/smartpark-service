@@ -16,8 +16,11 @@ public class VehicleService {
     public Vehicle create(VehicleDto accountDto) {
         Vehicle vehicle = accountDto.toEntity();
         try {
-            vehicle = repository.save(vehicle);
-            return vehicle;
+        	if(!repository.existsByLicensePlate(vehicle.getLicensePlate())) {
+                vehicle = repository.save(vehicle);
+                return vehicle;
+        	}
+        	
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }

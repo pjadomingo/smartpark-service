@@ -4,6 +4,7 @@ import com.hitachi.smartpark_service.enums.VehicleType;
 import com.hitachi.smartpark_service.model.Vehicle;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public class VehicleDto {
@@ -18,7 +19,7 @@ public class VehicleDto {
     @Pattern(regexp = "^[A-Za-z ]+$", message = "Owner name must contain only letters and spaces")
     private String ownerName;
     
-    @NotBlank(message = "Type is required field")
+    @NotNull(message = "Type is required field")
     @Pattern(regexp = "Car|Motorcycle|Truck", message = "Type must be Car or Motorcycle or Truck")
     private String type;
 
@@ -32,7 +33,6 @@ public class VehicleDto {
         this.type = type;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -57,7 +57,15 @@ public class VehicleDto {
         this.ownerName = ownerName;
     }
 
-    public static VehicleDto fromEntity(Vehicle vehicle) {
+    public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public static VehicleDto fromEntity(Vehicle vehicle) {
         if (vehicle == null) {
             return null;
         }

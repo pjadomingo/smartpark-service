@@ -15,8 +15,8 @@ import jakarta.persistence.SequenceGenerator;
 public class Vehicle {
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "parkinglot_seq")
-    @SequenceGenerator(name = "parkinglot_seq", sequenceName = "parkinglot_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "vehicle_seq")
+    @SequenceGenerator(name = "vehicle_seq", sequenceName = "vehicle_seq", allocationSize = 1)
 	private Long id;
 	
 	@Column(length = 50, nullable = false, unique=true)
